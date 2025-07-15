@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  repository: vesanit/github-yaml-updater
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+env:
+  GITHUB_TOKEN: ""
+
+resources: {}
