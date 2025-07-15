@@ -3,50 +3,52 @@ kind: Deployment
 metadata:
   name: refty-bayut-district-property-parser
 spec:
+  replicas: 7
   selector:
     matchLabels:
       app: refty-bayut-district-property-parser
-  replicas: 7
   template:
     metadata:
       labels:
         app: refty-bayut-district-property-parser
     spec:
+      containers:
+      - command:
+        - node
+        - dist/bayutDistrictParserJobsWorker.js
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: postgres-secret
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: postgres-secret
+        - name: POSTGRES_HOST
+          value: postgres
+        - name: POSTGRES_DB
+          value: postgres
+        - name: POSTGRES_PORT
+          value: '5432'
+        image: ghcr.io/refty-yapi/refty-node/refty-node:05-06-42a252
+        name: refrefty-bayut-district-property-parser
+        volumeMounts:
+        - mountPath: /app/config
+          name: refty-node-config
+      imagePullSecrets:
+      - name: regcred
       nodeSelector:
         purpose: parsers
-      tolerations:
-        - key: "dedicated"
-          operator: "Equal"
-          value: "parsers"
-          effect: "NoSchedule"
       serviceAccountName: refty-dev-new
-      containers:
-        - name: refrefty-bayut-district-property-parser
-          image: ghcr.io/refty-yapi/refty-node/refty-node:05-06-42a252
-          command: ["node", "dist/bayutDistrictParserJobsWorker.js"]
-          env:
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: username
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: password
-            - name: POSTGRES_HOST
-              value: postgres
-            - name: POSTGRES_DB
-              value: postgres
-            - name: POSTGRES_PORT
-              value: "5432"
-          volumeMounts:
-            - mountPath: /app/config
-              name: refty-node-config
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: parsers
       volumes:
-        - name: refty-node-config
-          configMap:
-            name: refty-node-config
-      imagePullSecrets:
-        - name: regcred
+      - configMap:
+          name: refty-node-config
+        name: refty-node-config
